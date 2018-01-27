@@ -5,7 +5,7 @@ author: Chandra Sekar, Bhuvnesh Sharma, Eugene Tang
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=80),tidy=TRUE)
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
 setwd("~/Desktop/EugeneTang/Grad School/Berkeley/W203_Statistics/Homework/Lab01/broadband/") # change as necessary
 ```
 
@@ -26,7 +26,7 @@ In this analysis we seek to tackle two main questions:
 * Is there evidence for beneifical effects of open access policies?
 
 ### Dataset Setup (code)
-Please see below sections to see why certain decisions were made in the preparation of the dataset.
+Here is the code we used to prepare our dataset. Please see the below sections to see why certain decisions were made in the preparation of the dataset.
 
 ```{r}
 library(dplyr)
@@ -36,22 +36,23 @@ df_price = read.table("Price.csv", header = TRUE, sep = ",")
 df_penetration = read.table("Penetration_Modified.csv", header = TRUE, sep = ",")
 df_speed = read.table("Speed_Modified.csv", header = TRUE, sep = ",") 
 
-# some dataset cleaning (see "Data Quality Evaluation" for more details on why we did this)
-drops_penetration <- c("X") # extra column
+# some dataset cleaning (see "Data Processing" for more details on why we did this)
+drops_penetration <- c("X") # extra column to remove
 df_penetration = df_penetration[ , !(names(df_penetration) %in% drops_penetration)]
-colnames(df_speed)[2] <- "Country.Code"
+colnames(df_speed)[2] <- "Country.Code" # rename country code column
 
 # convert numeric fields to the numeric type
 convert_to_numeric = function(col) {
   return(as.numeric(sub("[\\$%,]","", col)))
 }
-
 NON_ID_DATA_START <- 3 # columns 1 and 2 are the country and country code data
 df_price[NON_ID_DATA_START:length(df_price)] = lapply(df_price[NON_ID_DATA_START:length(df_price)], convert_to_numeric)
-df_penetration[NON_ID_DATA_START:length(df_penetration)] = lapply(df_penetration[NON_ID_DATA_START:length(df_penetration)], convert_to_numeric)
-df_speed[NON_ID_DATA_START:length(df_speed)] = lapply(df_speed[NON_ID_DATA_START:length(df_speed)], convert_to_numeric)
+df_penetration[NON_ID_DATA_START:length(df_penetration)] = 
+  lapply(df_penetration[NON_ID_DATA_START:length(df_penetration)], convert_to_numeric)
+df_speed[NON_ID_DATA_START:length(df_speed)] = 
+  lapply(df_speed[NON_ID_DATA_START:length(df_speed)], convert_to_numeric)
 
-
+# Join the data
 df_partial = full_join(df_penetration, df_price, by = c("Country", "Country.Code"))
 df_full = full_join(df_partial, df_speed, by = c("Country", "Country.Code"))
 ```
@@ -59,27 +60,117 @@ df_full = full_join(df_partial, df_speed, by = c("Country", "Country.Code"))
 ### Dataset Description
 Our dataset comes in three csv files. One for price, penetration, and speed respectively. Each dataset contains observations on 30 countries, with one row for each country. Each dataset contains a variety of variables. Below we include tables of each variable, its type, and its description.
 
-Each of the three datasets contains string columns to represent country and country code field. We use the country code field to join the datasets together since country code was unique across each row (though we could have used country as well). For conciseness, we exclude these two columns in the tables below. (TODO: check that country / country codes all match up)
+Each of the three datasets contains string columns to represent country and country code field. We use the two fields to join the datasets together since they are unique across each row (though either field individually would also have sufficed. For conciseness, we exclude these two columns in the tables below.
 
 ```{r}
-
+writeLines(paste(length(df_full$Country), "countries"))
+writeLines(paste(df_full$Country, collapse = ", ", sep = ""))
 ```
 
 #### Price Dataset
 Our price dataset contained information on the cost to access different levels of Internet
 
-Column | Interpretation
------- | ---------------
-       |
-       |
-       |
-       |
+Column                               | Interpretation
+------------------------------------ | ------------------------------------
+Price for low speeds, combined       | Price (in USD$) for low-speed Internet
+Price for med speeds, combined       | Price (in USD$) for medium-speed Internet
+Price for high speeds, combined      | Price (in USD$) for high-speed Internet
+Price for very high speeds, combined | Price (in USD$) for very high-speed Internet
 
+#### Penetration Dataset
+Our penetration dataset contained information on how widespread network availability is in a country.
 
-### Data Quality Evaluation
+Column                               | Interpretation
+------------------------------------ | ------------------------------------
+Penetration per 100 OECD, 2008       | "Penetration" per 100 people in 2008 as measured by the OECD
+Penetration per 100 OECD, 2007       | "Penetration" per 100 people in 2007 as measured by the OECD
+Household penetration, OECD          | Household penetration as measured by the OECD
+2G and 3G penetration per 100, OECD  | 2G and 3G network penetration per 100 people for OECD
+Penetration per 100 GC               | Penetration per 100 people as measured by GC
+3G penetration per 100       | 3G network penetration per 100 people
+Growth in 3G penetration      | Growth in 3G network penetration
+Wi-Fi hotspots, JiWire | Number of Wi-Fi hotspots
+Wi-Fi hotspots per 100,000, JiWire      | Number of Wi-Fi hotspots per 100,000 people
+Percent of population in urban areas | Percent of population in urban areas with access to the Internet
 
+#### Speed Dataset
+The speed dataset has various metrics on the speed of the network available in a country.
+
+Column                               | Interpretation
+------------------------------------ | ------------------------------------
+Maximum advertised speed OECD (kbps)       | (same as column name)
+Average advertised speed OECD (kbps)       | (same as column name)
+Average actual speed, Akamai (kbps)        | (same as column name)
+Average download speedtest.net (kbps)      | (same as column name)
+Standard deviation download, speedtest.net | (same as column name)
+Average upload speedtest.net (kbps)        | (same as column name)
+Standard deviation upload, speedtest.net   | (same as column name)
+Average latency speedtest.net              | Average latency in ms (measured by speedtest.net)
+Standard deviation latency, speedtest.net  | Standard deviation of latency in ms (measured by speedtest.net)
+Median download, speedtest.net (kbps)      | (same as column name)
+Median upload, speedtest.net (kbps)        | (same as column name)
+Median latency, speedtest.net              | Median latency in ms (measured by speedtest.net)
+90p. Download, speedtest.net (kbps)        | Top 90% of download speed (measured by speedtest.net)
+90p. Upload, speedtest.net (kbps)          | Top 90% of upload speed (measured by speedtest.net)
+10p. Latency, speedtest.net                | Lowest 10% of latency in ms (measured by speedtest.net)
 
 ### Data Processing / Preparation
+When first starting with the dataset, we noticed that two of the files (Speed.csv and Penetration.csv) had extra lines at the bottom. To help work with this, we manually removed the two lines and saved the results in Speed_Modified.csv and Penetration_Modified.csv (also attached). 
+
+The next thing we noticed was that the penetration dataset had an extra column called X with no values. We chose to removed this column since it has no values. In the speed dataset, we noticed that the country code column was named differently ("Country code") from that in the penetration and price datasets ("Country.Code"). To adjust for this, we renamed the country code column to "Country.Code" to help facilitate joins later on.
+
+```{r eval=FALSE}
+# some dataset cleaning
+drops_penetration <- c("X") # extra column
+df_penetration = df_penetration[ , !(names(df_penetration) %in% drops_penetration)]
+colnames(df_speed)[2] <- "Country.Code"
+```
+
+After performing these adjustments, we found that a lot of data were read as factors because some columns had percentage signs or commas in the numbers which had the read.tables function interpret the input as Strings instead of numbers. Because we would want to interact with all of the values as numbers (short of the country and country code columns), we next converted all of the columns to numeric type.
+
+```{r eval=FALSE}
+# convert numeric fields to the numeric type
+convert_to_numeric = function(col) {
+  return(as.numeric(sub("[\\$%,]","", col)))
+}
+NON_ID_DATA_START <- 3 # columns 1 and 2 are the country and country code data
+df_price[NON_ID_DATA_START:length(df_price)] =
+  lapply(df_price[NON_ID_DATA_START:length(df_price)], convert_to_numeric)
+df_penetration[NON_ID_DATA_START:length(df_penetration)] =
+  lapply(df_penetration[NON_ID_DATA_START:length(df_penetration)], convert_to_numeric)
+df_speed[NON_ID_DATA_START:length(df_speed)] = lapply(df_speed[NON_ID_DATA_START:length(df_speed)], convert_to_numeric)
+```
+
+Finally, we joined the three tables to make it easier to work with.
+```{r eval=FALSE}
+# Join the data
+df_partial = full_join(df_penetration, df_price, by = c("Country", "Country.Code"))
+df_full = full_join(df_partial, df_speed, by = c("Country", "Country.Code"))
+```
+
+### Data Quality Evaluation
+There were a few columns that had fewer than 30 observations.
+
+```{r}
+cols_with_nas <- colnames(df_full)[colSums(is.na(df_full)) > 0]
+```
+
+Of these columns, the measurement of the price of very high Internet speeds by far was the most incomplete (had the most NAs). One possible explanation for this is that not all countries have very high speed Internet and thus would not have a value for this column. For columns with NAs, we decided to omit the countries with the NAs from our analyses since we do not have a good default to put in.
+
+```{r}
+print_nas = function(colname) {
+  writeLines(paste("Number of NAs in ", colname, ": ", sum(is.na(df_full[colname])), sep = ""))
+}
+invisible(lapply(cols_with_nas, print_nas))
+```
+
+Outside of this, our data was fairly complete. However, looking through our data, we did notice some irregularities. The first we found is that Poland's value for the percent of population in urban areas field is 162%. We do not have a full understanding of what that means, but it seems that this field measures a percentage of the population of people in urban areas, so since 162% > 100%, we are a little dubious of that data point and feel that it could be likely due to reporting error. For this reason, we decided to remove Poland from analyses containing this column.
+
+Another irregularity was that Turkey's 3G penetration per 100 is 0 despite having 20.20% growth in 3G penetration. It is possible that Turkey had a really really low 3G penetration such that a 20.20% growth would still result in an average of 0 per 100. However, given some of the other values in the other fields, (e.g. 2G and 3G penetration per 100, OECD having a value of 84.93), we are a little dubious of this value and decided to remove Turkey from analyses containing this column. 
+
+Finally, we noticed that in the measurement of the standard deviation of latency for Iceland, Iceland has an unusually high value of 1,199 (where all the other standard deviations are around 300). TODO: what did we do about this?
+
+
 
 ## Univariate Analysis of Key Variables
 ## Analysis of Key Relationships

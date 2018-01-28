@@ -6,8 +6,8 @@ author: Chandra Sekar, Bhuvnesh Sharma, Eugene Tang
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
-#setwd("C:/Users/csekar/broadband") # change as necessary
-setwd("~/Desktop/EugeneTang/Grad School/Berkeley/W203_Statistics/Homework/Lab01/broadband/") # change as necessary
+setwd("C:/W203/broadband") # change as necessary
+#setwd("~/Desktop/EugeneTang/Grad School/Berkeley/W203_Statistics/Homework/Lab01/broadband/") # change as necessary
 ```
 
 ## Introduction
@@ -230,23 +230,31 @@ Poland's value for the percent of population in urban areas field is 162%. We do
 Another irregularity was that Turkey's 3G penetration per 100 is 0 despite having 20.20% growth in 3G penetration.
 Let's look at the boxplot to understand more abnormal values:
 ```{r}
-boxplot(df_penetration[NON_ID_DATA_START:8], las=2, names=c("2008", "2007", "Household" , "2G & 3G", "GC", "3G"))
+boxplot(df_penetration[NON_ID_DATA_START:8], las=2, names=c("2008", "2007", "Household" , "2G & 3G", "GC", "3G"), main="Boxplots of key penetration variables")
 ```
-The above boxplot shows that the data is pretty solid and can be used as is for further analysis. Let's look at the boxplot of the remaining variables.
+The above boxplot shows that the penetrationdata is pretty solid and can be used as is for further analysis. Let's look at the boxplot of the remaining variables.
 ```{r}
-boxplot(df_penetration[9])
+boxplot(df_penetration[9], ylab = "Percentage" , xlab = "Growth in 3G", main="Boxplot of Growth in 3G by percentage")
 ```
+The above plot of Growth in 3G has 2 values outside of the range.Australia and Austria have 510% and 339% of growth respectively.
+
 ```{r}
-boxplot(df_penetration[10])
+boxplot(df_penetration[10], ylab = "Total number" , xlab = "WiFi Hotspots", main="Boxplot of Total number of WiFi Hotspots")
 ```
+Most of the cpountries have WiFi hotspots in the range of few hundreds to 5000, whereas Unitedstates has 67718 hotspots followed by France and UK in the 25 thousand range. Another interesting observation is Iceland has only 6. 
+
 ```{r}
-boxplot(df_penetration[11])
+boxplot(df_penetration[11], ylab = "Number per 100000 people" , xlab = "WiFi Hotspots", main="Boxplot of WiFi Hotspots per 100000 people")
 ```
+In the above plot Sweden and Switzerland have the most hotspots for it's population, 74 and 70 respectively. Again on the low and possibly on the erroneous side is Iceland with 2 and Turkey with 0.6.
+
 ```{r}
-boxplot(df_penetration[12])
+boxplot(df_penetration[12], ylab = "Percentage" , xlab = "Urban Population", main="Boxplot of Urban population in percentage")
 ```
+In the above plot the outlier or the questionable entry is for Poland with 162%. The rest of data is within the range of a typical unrban population percentage with a median of 77%
 
 ## Analysis of Key Relationships
+
 ## Analysis of Secondary Effects
 Secondary variables
 Culture: South Korea - high speed, gaming / Internet is big

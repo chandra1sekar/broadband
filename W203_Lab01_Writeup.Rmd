@@ -87,10 +87,10 @@ Penetration per 100 OECD, 2007       | "Penetration" per 100 people in 2007 as m
 Household penetration, OECD          | Household penetration as measured by the OECD
 2G and 3G penetration per 100, OECD  | 2G and 3G network penetration per 100 people for OECD
 Penetration per 100 GC               | Penetration per 100 people as measured by GC
-3G penetration per 100       | 3G network penetration per 100 people
-Growth in 3G penetration      | Growth in 3G network penetration
-Wi-Fi hotspots, JiWire | Number of Wi-Fi hotspots
-Wi-Fi hotspots per 100,000, JiWire      | Number of Wi-Fi hotspots per 100,000 people
+3G penetration per 100               | 3G network penetration per 100 people
+Growth in 3G penetration             | Growth in 3G network penetration
+Wi-Fi hotspots, JiWire               | Number of Wi-Fi hotspots
+Wi-Fi hotspots per 100,000, JiWire   | Number of Wi-Fi hotspots per 100,000 people
 Percent of population in urban areas | Percent of population in urban areas with access to the Internet
 
 #### Speed Dataset
@@ -199,12 +199,44 @@ colnames(df_speed)[3:17] <- c("Max Advertised", "Average Advertised", "Average A
 summary(df_speed)
 ```
 
+One of the key variable in this dataset is the "Average Actual speed". This has NAs for the countries Hungary, Poland, Slovak and Turkey. This is interesting because these countries do have values in the Average Download speed, upload speed and other variables.
+Also to note are the Max value of this variable, 15239Kbps for Korea and the min value 948Kbps for Mexico. 
+
+While briefly looking at the other key variables we noticed that in the measurement of the standard deviation of latency for Iceland, Iceland has an unusually high value of 1,199 (where all the other standard deviations are around 300). The standard deviation for upload speed is 12098 for Sweden. Again unsually high while the others have SD in the range of 4000. 
+
+We also notice that the max values for downloads are for Korea and max values for uploads are for Japan.
+
 Let's look at the distribution of the key variable using an histogram:
 
 ```{r}
-hist(df_speed$`Average Actual`, breaks=10, col="red")
+hist(df_speed$`Average Actual`, breaks=20, col="red")
 ```
 
+####Let's look at our final dataset
+```{r}
+colnames(df_penetration)[3:12] <- c("Penetration 2008", "Penetration 2007", "Household Penetration" ,"2G and 3G Penetration", "Penetration GC", "3G Penetration", "Growth in 3G" , "WiFi hotspots" , "WiFi per 100000", "Percent Urban" )
+summary(df_penetration)
+```
+Poland's value for the percent of population in urban areas field is 162%. We do not have a full understanding of what that means, but it seems that this field measures a percentage of the population of people in urban areas, so since 162% > 100%, we are a little dubious of that data point and feel that it could be likely due to reporting error. For this reason, we decided to remove Poland from analyses containing this column.
+
+Another irregularity was that Turkey's 3G penetration per 100 is 0 despite having 20.20% growth in 3G penetration.
+Let's look at the boxplot to understand more abnormal values:
+```{r}
+boxplot(df_penetration[3:8], las=2, names=c("2008", "2007", "Household" , "2G & 3G", "GC", "3G"))
+```
+The above boxplot shows that the data is pretty solid and can be used as is for further analysis. Let's look at the boxplot of the remaining variables.
+```{r}
+boxplot(df_penetration[9])
+```
+```{r}
+boxplot(df_penetration[10])
+```
+```{r}
+boxplot(df_penetration[11])
+```
+```{r}
+boxplot(df_penetration[12])
+```
 
 ## Analysis of Key Relationships
 ## Analysis of Secondary Effects

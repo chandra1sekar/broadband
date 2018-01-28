@@ -6,7 +6,8 @@ author: Chandra Sekar, Bhuvnesh Sharma, Eugene Tang
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
-setwd("C:/Users/csekar/broadband") # change as necessary
+#setwd("C:/Users/csekar/broadband") # change as necessary
+setwd("~/Desktop/EugeneTang/Grad School/Berkeley/W203_Statistics/Homework/Lab01/broadband/") # change as necessary
 ```
 
 ## Introduction
@@ -32,9 +33,9 @@ Here is the code we used to prepare our dataset. Please see the below sections t
 library(dplyr)
 library(car)
 
-df_price = read.table("Price.csv", header = TRUE, sep = ",")
-df_penetration = read.table("Penetration_Modified.csv", header = TRUE, sep = ",")
-df_speed = read.table("Speed_Modified.csv", header = TRUE, sep = ",") 
+df_price = read.table("Price.csv", header = TRUE, sep = ",", stringsAsFactors = FALSE)
+df_penetration = head(read.table("Penetration.csv", header = TRUE, sep = ",", stringsAsFactors = FALSE), -1) # last row is empty
+df_speed = head(read.table("Speed.csv", header = TRUE, sep = ",", stringsAsFactors = FALSE), -2) # last two rows is empty
 
 # some dataset cleaning (see "Data Processing" for more details on why we did this)
 drops_penetration <- c("X") # extra column to remove
@@ -168,51 +169,58 @@ Outside of this, our data was fairly complete. However, looking through our data
 
 Another irregularity was that Turkey's 3G penetration per 100 is 0 despite having 20.20% growth in 3G penetration. It is possible that Turkey had a really really low 3G penetration such that a 20.20% growth would still result in an average of 0 per 100. However, given some of the other values in the other fields, (e.g. 2G and 3G penetration per 100, OECD having a value of 84.93), we are a little dubious of this value and decided to remove Turkey from analyses containing this column. 
 
-Finally, we noticed that in the measurement of the standard deviation of latency for Iceland, Iceland has an unusually high value of 1,199 (where all the other standard deviations are around 300). TODO: what did we do about this?
-
-
+Finally, we noticed that in the measurement of the standard deviation of latency for Iceland, Iceland has an unusually high value of 1,199 (where all the other standard deviations are around 300). Further irregularities in the data we found and how we handle them can be found in the following sections.
 
 ## Univariate Analysis of Key Variables
+Now we have the combined data in the data frame (df_full), we can use the invividual dataframe to perform the univariate analysis of key variables. We renamed the column names for clarity while displaying summary and the plots.
 
-Now we have the combined data in the data frame (df_full) , we can use the invividual dataframe to perform the Univariate analysis of Key variables. First we renamed the column names for clarity while displaying summary and the plots.
-
-Here is the analysis on the Price dataset.
+### Price Dataset
 ```{r}
-colnames(df_price)[3:6] <- c("Low speed", "Medium speed", "High Speed", "VeryHigh Speed")
+colnames(df_price)[NON_ID_DATA_START:length(df_price)] <- c("Low_Speed", "Medium_Speed", "High_Speed", "VeryHigh_Speed")
 summary(df_price)
-
-```
-By looking at the min, max and the different Quartiles we can see there are some outliers. Using a boxplot we can clearly see which variable has outliers and how much the deviation is.
-
-```{r}
-
-boxplot(df_price[3:6],ylab = "Price in USD" , col = c("palevioletred","sienna","royalblue","red1"))
 ```
 
-The max value in the "High Speed" variable is 210.36 for the country Poland, while the mean is 55 and the 3rd Quartile is 64. The min value for the "High speed" vaiable is 0.69 for the country Luxembourg which could be wrong since that country's Low speed and Medium speed prices are 26 and 36 dollars respectively.
+By looking at the min, max and the different quartiles we can see there are some outliers. Using a boxplot we can clearly see which variable has outliers and a sense for how much deviation there is.
 
-Looking at the NA's, there are 11 NAs for the "VeryHigh Speed" which could mean that those 11 countries do not have veryhigh speed broadband services. But the NA in Lowspeed variable for the country Belgium is something we need to be aware of when doing further analysis. Similarly, Mexico and Turkey have NAs in the "High speed" variable.
+```{r fig.width = 8}
+boxplot(df_price[NON_ID_DATA_START:length(df_price)],ylab = "Price in USD" , col = c("palevioletred","sienna","royalblue","red1"), main="Boxplots of prices for different levels of Internet")
+```
 
-####Looking at our next dataset df_speed:
+The max value in the "High Speed" variable is \$210.36 for the country Poland, whereas the mean for the "High Speed" variable is \$55 and the 3rd Quartile is \$64. This seems a bit irregular, though it could be possible. The min value for the "High speed" vaiable is \$0.69 for the country Luxembourg which could be wrong since that country's Low speed and Medium speed prices are 26 and 36 dollars respectively.
+
+Looking at the NAs, there are 11 NAs for the "VeryHigh Speed" which could mean that those 11 countries do not have veryhigh speed broadband services. But the NA in "Low Speed" variable for the country Belgium is something we need to be aware of when doing further analysis. Similarly, Mexico and Turkey have NAs in the "High Speed" variable.
+
+Since the "Low Speed" and "VeryHigh Speed" variables are incomplete, and given the likely chance that the "High Speed" variable has bad data, we decided to use the price of the "Medium Speed" Internet as a proxy for price in further analysis. In addition, we note that the "Medium Speed" variable is fairly highly correlated with the other three variables:
+
 ```{r}
-colnames(df_speed)[3:17] <- c("Max Advertised", "Average Advertised", "Average Actual", "Average Download", "SD download", "Average upload", "SD upload", "Average Latency", "SD Latency", "Median Download", "Median upload", "Median Latency", "Top 90% Download", "Top 90% Upload", "Bottom 10% Latency")
+cor(df_price$Low_Speed, df_price$Medium_Speed, use="pairwise.complete.obs")
+cor(df_price$High_Speed, df_price$Medium_Speed, use="pairwise.complete.obs")
+cor(df_price$VeryHigh_Speed, df_price$Medium_Speed, use="pairwise.complete.obs")
+```
+
+### Speed Dataset
+```{r}
+colnames(df_speed)[NON_ID_DATA_START:length(df_speed)] <- c("Max Advertised", "Average Advertised", "Average Actual", "Average Download", "SD download", "Average upload", "SD upload", "Average Latency", "SD Latency", "Median Download", "Median upload", "Median Latency", "Top 90% Download", "Top 90% Upload", "Bottom 10% Latency")
 summary(df_speed)
 ```
 
-One of the key variable in this dataset is the "Average Actual speed". This has NAs for the countries Hungary, Poland, Slovak and Turkey. This is interesting because these countries do have values in the Average Download speed, upload speed and other variables.
-Also to note are the Max value of this variable, 15239Kbps for Korea and the min value 948Kbps for Mexico. 
-
-While briefly looking at the other key variables we noticed that in the measurement of the standard deviation of latency for Iceland, Iceland has an unusually high value of 1,199 (where all the other standard deviations are around 300). The standard deviation for upload speed is 12098 for Sweden. Again unsually high while the others have SD in the range of 4000. 
-
-We also notice that the max values for downloads are for Korea and max values for uploads are for Japan.
-
-Let's look at the distribution of the key variable using an histogram:
+One of the key variable in this dataset is the "Average Actual speed". This has NAs for the countries Hungary, Poland, Slovak and Turkey. This is interesting because these countries do have values in the average download speed, upload speed and other variables. Also to note are the Max value of this variable, 15,239Kbps for Korea and the min value 948Kbps for Mexico. 
 
 ```{r}
-hist(df_speed$`Average Actual`, breaks=20, col="red")
+hist(df_speed$`Average Actual`, breaks=20, col="red", main = 'Histogram of Average Actual Speed, Akamai', xlab = 'Average Actual Speed, Akamai (kbps)')
 ```
 
-####Let's look at our final dataset
+While briefly looking at the other key variables we noticed that in the measurement of the standard deviation of latency for Iceland, Iceland has an unusually high value of 1,199 (where all the other standard deviations are around 300). The standard deviation for upload speed is 12,098 for Sweden. Again unsually high while the others have SD in the range of 4,000. Given these potential outliers, we need to keep them in mind when analyzing the rest of the data and how they can affect our analysis or skew our results (e.g. heavily influence the mean or line of best fit).
+
+Below we also show the countries with the maximum median download and upload speeds, and minimum latency. We chose to use the median to avoid having outliers influence the results
+
+```{r}
+df_speed$Country[which.max(df_speed$`Median Download`)]
+df_speed$Country[which.max(df_speed$`Median upload`)]
+df_speed$Country[which.max(df_speed$`Median Latency`)]
+```
+
+### Penetration dataset
 ```{r}
 colnames(df_penetration)[3:12] <- c("Penetration 2008", "Penetration 2007", "Household Penetration" ,"2G and 3G Penetration", "Penetration GC", "3G Penetration", "Growth in 3G" , "WiFi hotspots" , "WiFi per 100000", "Percent Urban" )
 summary(df_penetration)
@@ -222,7 +230,7 @@ Poland's value for the percent of population in urban areas field is 162%. We do
 Another irregularity was that Turkey's 3G penetration per 100 is 0 despite having 20.20% growth in 3G penetration.
 Let's look at the boxplot to understand more abnormal values:
 ```{r}
-boxplot(df_penetration[3:8], las=2, names=c("2008", "2007", "Household" , "2G & 3G", "GC", "3G"))
+boxplot(df_penetration[NON_ID_DATA_START:8], las=2, names=c("2008", "2007", "Household" , "2G & 3G", "GC", "3G"))
 ```
 The above boxplot shows that the data is pretty solid and can be used as is for further analysis. Let's look at the boxplot of the remaining variables.
 ```{r}
@@ -240,17 +248,22 @@ boxplot(df_penetration[12])
 
 ## Analysis of Key Relationships
 ## Analysis of Secondary Effects
-## Conclusion
+Secondary variables
+Culture: South Korea - high speed, gaming / Internet is big
+Wealth of country - can afford more infrastructure
+Result: need more data, take with a grain of salt.
+
+Whether a country has open access laws can also influence the appearance of penetration, price, speed, and their relationship. Assuming that we will be using the price to access Medium Speed Internet as a proxy for price, the median download speed as a proxy for speed, and the OECD 2008 penetration metric as a proxy for penetration, we take a quick glance at the difference between countries with and without open access laws.
+
+We take the list of countries without open access laws from the provided assignment document
 ```{r}
+COUNTRIES_NO_OPEN_ACCESS = c("US", "MX", "SK")
+df_full_wo_open_access = df_full[df_full$Country.Code %in% COUNTRIES_NO_OPEN_ACCESS, ]
+df_full_with_open_access = df_full[!(df_full$Country.Code %in% COUNTRIES_NO_OPEN_ACCESS), ]
 
+summary(df_full_with_open_access[c("Price.for.med.speeds..combined", "Penetration.per.100.OECD..2008", "Median.download..speedtest.net..kbps.")])
+summary(df_full_wo_open_access[c("Price.for.med.speeds..combined", "Penetration.per.100.OECD..2008", "Median.download..speedtest.net..kbps.")])
 ```
+TODO: some analysis here
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Conclusion

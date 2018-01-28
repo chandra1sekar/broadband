@@ -6,7 +6,7 @@ author: Chandra Sekar, Bhuvnesh Sharma, Eugene Tang
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
-setwd("~/Desktop/EugeneTang/Grad School/Berkeley/W203_Statistics/Homework/Lab01/broadband/") # change as necessary
+setwd("C:/Users/csekar/broadband") # change as necessary
 ```
 
 ## Introduction
@@ -173,9 +173,45 @@ Finally, we noticed that in the measurement of the standard deviation of latency
 
 
 ## Univariate Analysis of Key Variables
+
+Now we have the combined data in the data frame (df_full) , we can use the invividual dataframe to perform the Univariate analysis of Key variables. First we renamed the column names for clarity while displaying summary and the plots.
+
+Here is the analysis on the Price dataset.
+```{r}
+colnames(df_price)[3:6] <- c("Low speed", "Medium speed", "High Speed", "VeryHigh Speed")
+summary(df_price)
+
+```
+By looking at the min, max and the different Quartiles we can see there are some outliers. Using a boxplot we can clearly see which variable has outliers and how much the deviation is.
+
+```{r}
+
+boxplot(df_price[3:6],ylab = "Price in USD" , col = c("palevioletred","sienna","royalblue","red1"))
+```
+
+The max value in the "High Speed" variable is 210.36 for the country Poland, while the mean is 55 and the 3rd Quartile is 64. The min value for the "High speed" vaiable is 0.69 for the country Luxembourg which could be wrong since that country's Low speed and Medium speed prices are 26 and 36 dollars respectively.
+
+Looking at the NA's, there are 11 NAs for the "VeryHigh Speed" which could mean that those 11 countries do not have veryhigh speed broadband services. But the NA in Lowspeed variable for the country Belgium is something we need to be aware of when doing further analysis. Similarly, Mexico and Turkey have NAs in the "High speed" variable.
+
+####Looking at our next dataset df_speed:
+```{r}
+colnames(df_speed)[3:17] <- c("Max Advertised", "Average Advertised", "Average Actual", "Average Download", "SD download", "Average upload", "SD upload", "Average Latency", "SD Latency", "Median Download", "Median upload", "Median Latency", "Top 90% Download", "Top 90% Upload", "Bottom 10% Latency")
+summary(df_speed)
+```
+
+Let's look at the distribution of the key variable using an histogram:
+
+```{r}
+hist(df_speed$`Average Actual`, breaks=10, col="red")
+```
+
+
 ## Analysis of Key Relationships
 ## Analysis of Secondary Effects
 ## Conclusion
+```{r}
+
+```
 
 ## Including Plots
 

@@ -209,6 +209,11 @@ One of the key variable in this dataset is the "Average Actual speed". This has 
 ```{r}
 hist(df_speed$`Average Actual`, breaks=20, col="red", main = 'Histogram of Average Actual Speed, Akamai', xlab = 'Average Actual Speed, Akamai (kbps)')
 ```
+The other Key variable in this dataset is "Average Download speed"
+```{r}
+hist(df_speed$`Average Actual`, breaks=20, col="royalblue1", main = 'Histogram of Average Download Speed, Akamai', xlab = 'Average Download Speed, Akamai (kbps)')
+```
+While realizing that the Actual speed has some missing values and looking at the above histogram and it's similarity to the histogram of the "Average Actual speed", we have decided to use "Average Download speed" as the proxy speed variable for further analysis.
 
 While briefly looking at the other key variables we noticed that in the measurement of the standard deviation of latency for Iceland, Iceland has an unusually high value of 1,199 (where all the other standard deviations are around 300). The standard deviation for upload speed is 12,098 for Sweden. Again unsually high while the others have SD in the range of 4,000. Given these potential outliers, we need to keep them in mind when analyzing the rest of the data and how they can affect our analysis or skew our results (e.g. heavily influence the mean or line of best fit).
 
@@ -232,7 +237,9 @@ Let's look at the boxplot to understand more abnormal values:
 ```{r}
 boxplot(df_penetration[NON_ID_DATA_START:8], las=2, names=c("2008", "2007", "Household" , "2G & 3G", "GC", "3G"), main="Boxplots of key penetration variables")
 ```
-The above boxplot shows that the penetrationdata is pretty solid and can be used as is for further analysis. Let's look at the boxplot of the remaining variables.
+The above boxplot shows that the penetration data for 2008, 2007 and GC are highly correlated and and can be used as is for further analysis. We chose the 2008 OECD penetration data as the proxy for the penetration in the Key relationship analysis. 
+
+Let's look at the boxplot of the remaining variables.
 ```{r}
 boxplot(df_penetration[9], ylab = "Percentage" , xlab = "Growth in 3G", main="Boxplot of Growth in 3G by percentage")
 ```
@@ -241,7 +248,7 @@ The above plot of Growth in 3G has 2 values outside of the range.Australia and A
 ```{r}
 boxplot(df_penetration[10], ylab = "Total number" , xlab = "WiFi Hotspots", main="Boxplot of Total number of WiFi Hotspots")
 ```
-Most of the cpountries have WiFi hotspots in the range of few hundreds to 5000, whereas Unitedstates has 67718 hotspots followed by France and UK in the 25 thousand range. Another interesting observation is Iceland has only 6. 
+Most of the countries have WiFi hotspots in the range of few hundreds to 5000, whereas Unitedstates has 67718 hotspots followed by France and UK in the 25 thousand range. Another interesting observation is Iceland has only 6. 
 
 ```{r}
 boxplot(df_penetration[11], ylab = "Number per 100000 people" , xlab = "WiFi Hotspots", main="Boxplot of WiFi Hotspots per 100000 people")
@@ -254,6 +261,28 @@ boxplot(df_penetration[12], ylab = "Percentage" , xlab = "Urban Population", mai
 In the above plot the outlier or the questionable entry is for Poland with 162%. The rest of data is within the range of a typical unrban population percentage with a median of 77%
 
 ## Analysis of Key Relationships
+In order to perform the Key relationship analysis, we chose the "price for med speeds" from the Price dataset, "2008 Penetration OECD" from the Penetration dataset and "Average Download Speed" from the speed dataset.
+
+```{r}
+scatterplotMatrix(~df_full$Price.for.med.speeds..combined + df_full$Penetration.per.100.OECD..2008 + df_full$Average.download.speedtest.net..kbps., data=df_full)
+```
+First Observation: When penetration increases the price comes down
+
+```{r}
+pairs(~df_full$Price.for.med.speeds..combined+df_full$Average.download.speedtest.net..kbps.+df_full$Penetration.per.100.OECD..2008)
+```
+Second Observation: Interesting observation is that download speed is higher at a lower price point, whereas the download speed doesn't increase when the price is higher.
+Third Observation: As the penetration increases the download speed increases.
+
+In order to analyze the key relationship between all 3 datasets, we used a 3dscatterplot. 
+```{r}
+library(scatterplot3d)
+attach(df_full)
+scatterplot3d(df_full$Penetration.per.100.OECD..2008,df_full$Price.for.med.speeds..combined,log10(df_full$Average.download.speedtest.net..kbps.), pch=16, highlight.3d=TRUE,
+  type="h", main="3D Scatterplot of Price Vs Speed Vs Penetration")
+```
+
+Threeway Relation: when the Penetration increases, it brings down the price and also increases the download speed.
 
 ## Analysis of Secondary Effects
 Secondary variables

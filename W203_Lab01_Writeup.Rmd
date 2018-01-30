@@ -6,7 +6,6 @@ author: Chandra Sekar, Bhuvnesh Sharma, Eugene Tang
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=60),tidy=TRUE)
-#setwd("C:/W203/broadband") # change as necessary
 setwd("~/Desktop/EugeneTang/Grad School/Berkeley/W203_Statistics/Homework/Lab01/broadband/") # change as necessary
 ```
 
@@ -64,9 +63,14 @@ Our dataset comes in three csv files. One for price, penetration, and speed resp
 
 Each of the three datasets contains string columns to represent country and country code field. We use the two fields to join the datasets together since they are unique across each row (though either field individually would also have sufficed. For conciseness, we exclude these two columns in the tables below.
 
-```{r}
+```{r results='hold'}
 writeLines(paste(length(df_full$Country), "countries"))
-writeLines(paste(df_full$Country, collapse = ", ", sep = ""))
+writeLines(paste(df_full$Country[0:5], collapse = ", ", sep = ""))
+writeLines(paste(df_full$Country[5:10], collapse = ", ", sep = ""))
+writeLines(paste(df_full$Country[10:15], collapse = ", ", sep = ""))
+writeLines(paste(df_full$Country[15:20], collapse = ", ", sep = ""))
+writeLines(paste(df_full$Country[20:25], collapse = ", ", sep = ""))
+writeLines(paste(df_full$Country[25:30], collapse = ", ", sep = ""))
 ```
 
 #### Price Dataset
@@ -235,6 +239,8 @@ df_speed$Country[which.max(df_speed$`Median upload`)]
 df_speed$Country[which.max(df_speed$`Median Latency`)]
 ```
 
+It is interesting to see that Korea has the highest download speed since it seems to correspond well with how Korea has a large gaming culture and thus would want a high download speed.
+
 ### Penetration dataset
 ```{r}
 colnames(df_penetration)[NON_ID_DATA_START:length(df_penetration)] <- c("Penetration 2008", "Penetration 2007", "Household Penetration" ,"2G and 3G Penetration", "Penetration GC", "3G Penetration", "Growth in 3G" , "WiFi hotspots" , "WiFi per 100000", "Percent Urban" )
@@ -257,6 +263,8 @@ cor(df_penetration$`Penetration 2007`, df_penetration$`Penetration GC`, use="pai
 ```
 
 The above boxplot and the correlation figures show that the penetration data for 2008, 2007 and GC are highly correlated and and can be used as is for further analysis. We chose the 2008 OECD penetration data as the proxy for the penetration in the key relationship analysis. 
+
+One other interesting note is that the variable "2G and 3G network penetration per 100 people for OECD" has values ranging from 62 to 151. We are not sure what it means to have 151 per 100 people, but since we are not clear on the definition of the variable, so there could be very valid explanations for this.
 
 Let's look at the boxplot of the remaining variables.
 
@@ -286,31 +294,35 @@ In the above plot the outlier or the questionable entry is for Poland with 162%.
 
 ## Analysis of Key Relationships
 ###Price v. Speed v. Penetration
-(TODO: remove poland?)
 In order to perform the Key relationship analysis, we chose the "price for med speeds" from the Price dataset, "2008 Penetration OECD" from the Penetration dataset and "Median Download Speed" from the speed dataset for the reasons described in the previous section.
 
 ```{r}
-scatterplotMatrix(~Price.for.med.speeds..combined + Penetration.per.100.OECD..2008 + Median.download..speedtest.net..kbps., data=df_full)
+scatterplotMatrix(~Price.for.med.speeds..combined + Penetration.per.100.OECD..2008 + Median.download..speedtest.net..kbps., data=df_full, main="Scatterplot Matrix of Speed, Penetration, and Price")
 ```
 
-First Observation: When penetration increases the price comes down
+Because it seems there may be an exponential relationship between speed and price/penetration, we create another scatter plot where we take the log of the speed.
 
 ```{r}
-pairs(~Price.for.med.speeds..combined + Penetration.per.100.OECD..2008 + Median.download..speedtest.net..kbps., data=df_full)
+scatterplotMatrix(~Price.for.med.speeds..combined + Penetration.per.100.OECD..2008 + log(Median.download..speedtest.net..kbps.), data=df_full, main="Scatterplot Matrix of Log(Speed), Penetration, and Price")
 ```
+
+Finally, we also show the numeric correlations one may see in the trends above.
+
+```{r}
+cor(df_full$Price.for.med.speeds..combined, df_full$Penetration.per.100.OECD..2008, use="pairwise.complete.obs")
+cor(df_full$Median.download..speedtest.net..kbps., df_full$Penetration.per.100.OECD..2008, use="pairwise.complete.obs")
+cor(df_full$Price.for.med.speeds..combined, df_full$Median.download..speedtest.net..kbps., use="pairwise.complete.obs")
+```
+
+First Observation: When penetration increases the price decreases.
 
 Second Observation: Interesting observation is that download speed is higher at a lower price point, whereas the download speed doesn't increase when the price is higher.
 
 Third Observation: As the penetration increases the download speed increases.
 
-In order to analyze the key relationship between all 3 datasets, we used a 3dscatterplot. 
+Fourth Observation: There may be an exponential relationship between speed and price, and speed and penetration.
 
-```{r}
-scatterplot3d(df_full$Penetration.per.100.OECD..2008,df_full$Price.for.med.speeds..combined,log10(df_full$Average.download.speedtest.net..kbps.), pch=16, highlight.3d=TRUE,
-  type="h", main="3D Scatterplot of Price Vs Speed Vs Penetration")
-```
-
-Threeway Relation: when the Penetration increases, it brings down the price and also increases the download speed.
+Threeway Relation: one possible explanation for the observations we see is that when the penetration increases, it generally means an expansion or standardization of infrastructure. This could bring down the price required to access Internet since it is more available, and also increases the download speed.
 
 ###Median v. Average
 One other interesting comparison to make is between the median and average speeds in the speed dataset. We would expect them to be highly correlated. We present the results below:
@@ -324,10 +336,15 @@ cor(df_full$Average.latency.speedtest.net, df_full$Median.latency..speedtest.net
 It is interesting that the correlation between average and median latency is 0.65. We create a scatterplot to look at the relationship between the two:
 
 ```{r}
-plot(~Average.latency.speedtest.net + Median.latency..speedtest.net, data=df_full)
+plot(~Average.latency.speedtest.net + Median.latency..speedtest.net, data=df_full, main="Average versus Median Latency", xlab="Average latency (ms)", ylab="Median latency (ms)")
 ```
 
-It looks like there is an outlier in the data. Poking through the data, we find this outlier is the country (TODO: XX). We do not use latency as a proxy above, but it is interesting to note how they are so different. Finally, here we also see that the average latency tends to be higher than the median, meaning that the data is left-skewed.
+```{r}
+outlier_latency_country <- df_full$Country[df_full$Average.latency.speedtest.net > 400]
+writeLines(outlier_latency_country)
+cor(df_full[df_full$Country != outlier_latency_country,]$Average.latency.speedtest.net, df_full[df_full$Country != outlier_latency_country,]$Median.latency..speedtest.net, use="pairwise.complete.obs")
+```
+It looks like there is an outlier in the data. Poking through the data, we find this outlier is the country Luxembourg. Removing the row Luxembourg in the correlation computation, gives us a much higher correlation of 0.93. Finally, here we also see that the average latency tends to be higher than the median, meaning that the data is left-skewed.
 
 ## Analysis of Secondary Effects
 Whether a country has open access laws can also influence the appearance of penetration, price, speed, and their relationship. Assuming that we will be using the price to access Medium Speed Internet as a proxy for price, the median download speed as a proxy for speed, and the OECD 2008 penetration metric as a proxy for penetration, we take a quick glance at the difference between countries with and without open access laws.
@@ -349,4 +366,15 @@ First, we note that the countries without open access laws tend to have higher m
 Looking through this data, we also noticed that there could be many secondary effects other in play. The first is culture. For example, South Korea has a large culture of online gaming. This increases the demand for high speed Internet and could be a reason why its median download speed is the highest. Such secondary effects could confound the relationship between price, penetration, and speed, as well as whether open access laws make a difference. For example, the magnitude of price, penetration, and speed could be a function of South Korea's gaming-heavy culture rather than open access laws. Another possible secondary effect is the wealth of the country. Wealthier countries can afford more infrastructure and possibly even subsidize Internet costs. This would also be a driver for bringing down Internet prices, increasing penetration, and increasing Internet speed. Thus rather than open access laws influencing availability of Internet, it could be purely a function of wealth. Given these possible secondary variables, we would take these results with a grain of salt and look at more data before making any conclusions. I would try to control for certain variables such as a nation's wealth in future steps of this analyses.
 
 ## Conclusion
-From our analysis of the 
+In our analysis, we sought to tackle the following questions regarding  networks based on data from the Berkman Center.
+
+* Does a trade-off exist between network price, penetration, and speed?
+* Is there evidence for beneifical effects of open access policies?
+
+First, we noticed that our data had a couple of outliers and missing datapoints. We needed to format our data to make it usable, and then we chose variables to analyze that seemed to suffer less from the outlier and missing datapoints issues.
+
+When looking at price, penetration, and speed, we found that there were correlations between them, but perhaps in an initially counterintuitive direction. For example, one might expect speed to be positively-correlated with price (higher speed, more expensive), but we found that it was actually the opposite case. Overall, we found that speed was negatively correlated with price, price was negatively correlated with penetration, and speed was positively correlated with penetration. One possible explanation for this is that as penetration increases, it generally indicates that the country either has favorable laws or good infrastructure regarding Internet access, and thus decreased prices and increased speeds. While we cannot make this claim with the data and analysis done, it would be an interesting avenue of further study given more data (e.g. trying to control for factors such as a nation's wealth).
+
+When looking at open access policies, there does seem to be evidence supporting the notion that open access policies are beneficial to a country (lower prices, more penetration, faster speeds). That being said, given our very small sample size (only 3 countries with no open access policies), this would also warrant a lot more analysis before any claims can be made.
+
+Overall, this dataset was really intersting to look through. It contained a lot of rich information on each nation's network. It would be interesting to do further analysis such as looking at how this data changes across time, a nation's wealth, and perhaps including more nations in this analysis as well.
